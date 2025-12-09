@@ -1,0 +1,35 @@
+import { classMerge } from "../utils/ClassMarge";
+
+type Props = React.ComponentProps<"button"> & {
+    Isloading?: boolean;
+    variant?: "base" | "icon" | "iconSmall"
+};
+
+const variants = {
+    button: {
+        base: "h-12 ",
+        icon: "h-12 w-12",
+        iconSmall: "h-8 w-8"
+    }
+}
+
+export function Button({ Isloading, className, children, type = "submit", variant = "base", ...rest }: Props) {
+    return (
+        <button disabled={Isloading} type={type} {...rest}
+            className={
+                classMerge([
+                    ` flex items-center justify-center bg-green-100 rounded-lg
+                        text-white cursor-pointer hover:bg-green-200 transition 
+                        ease-linear disabled:opacity-50`,
+                    variants.button[variant],
+                    Isloading && "cursor-progress",
+                    className,
+
+                ])
+            }
+        >
+            {children}
+        </button>
+    )
+
+}
