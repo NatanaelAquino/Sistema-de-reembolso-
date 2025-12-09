@@ -1,5 +1,6 @@
-import { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import { AxiosError } from "axios";
+import { api } from "../services/api";
 
 import { formatCurrency } from "../utils/FormatCurrency";
 import searchSVG from "../assets/search.svg"
@@ -10,27 +11,40 @@ import { RefundItem, type RedunItemProps } from "../components/RefundItem";
 import { Pagination } from "../components/Pagination";
 
 
-const REFUND_EXAMPLE = {
-  id: "123",
-  name: "Natanael",
-  category: "Transport",
-  amout: formatCurrency(42.42),
-  categoryImg: CATEGORIES["transport"].icon
-
-}
-
 export function Dasboard() {
 
   const [name, setName] = useState("")
   const [page, setPage] = useState(1)
-  const [totalOfPage, setTotalOfpage] = useState(10)
-  const [refund, setRefund] = useState<RedunItemProps[]>([REFUND_EXAMPLE])
+  const [totalOfPage, setTotalOfpage] = useState(0)
+  const [refund, setRefund] = useState<RedunItemProps[]>([])
+  const PER_PAGE = 5
 
-  function fetchRefunds(e: React.FormEvent) {
-    e.preventDefault()
-    console.log(name)
+  async function fetchRefunds() {
+    try {
+      const response = await api.get<RedundsPaginationApiResponse>(
+        `/refunds?name=${name.trim()}&page=${page}&perPage=${PER_PAGE}`
+      )
+      setRefund(
+        response.data.refunds.map((refund) => ({
+          id: refund.id,
+          name: refund.user.name,
+          description: refund.name,
+          amout: formatCurrency(refund.amount),
+          categoryImg: CATEGORIES[refund.category].icon,
+        }))
+      )
+      setTotalOfpage(response.data.pagination.totalPages)
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        alert(error.response?.data.message)
+      }
+      alert("Não foi possivel carregar")
+    }
   }
-
+  function onSubmit(e: React.FormEvent){
+    e.preventDefault()
+    fetchRefunds()
+  }
   function handlePagination(action: "next" | "previous") {
     setPage((prevpage) => {
       if (action === "next" && prevpage < totalOfPage) {
@@ -42,11 +56,15 @@ export function Dasboard() {
       return prevpage
     })
   }
+
+  useEffect(() => {
+    fetchRefunds()
+  }, [page])
   return (
     <div className="bg-gray-500 rounded-xl p-10 md:min-w-[768px] ">
       <h1 className="text-gray-100 font-bold text-xl flex-1">Solicitações</h1>
 
-      <form onSubmit={fetchRefunds}
+      <form onSubmit={onSubmit}
         className="flex flex-1 items-center justify-between pb-6 border-b-[1px] border-b-gray-400 md:flex-row gap-3 mt-6" >
         <Input placeholder="Pesquisar pelo nome" onChange={(e) => setName(e.target.value)} />
 
@@ -55,7 +73,7 @@ export function Dasboard() {
       <div className="my-6 flex flex-col gap-4 max-h-[342px] overflow-y-scroll">
 
         {refund.map((item) => (
-          <RefundItem key={item.id} data={item}  href={`/refund/${item.id}`} />
+          <RefundItem key={item.id} data={item} href={`/refund/${item.id}`} />
         ))}
       </div>
 

@@ -2,7 +2,7 @@
 export type RedunItemProps ={
     id: string
     name: string
-    category: string
+    description: string
     amout: string
     categoryImg: string
 
@@ -23,7 +23,7 @@ export function RefundItem({data,...rest}:Props){
 
             <div className="flex flex-col flex-1">
                 <strong className="text-sm text-gray-100">{data.name}</strong>
-                <strong className="text-xs text-gray-200">{data.category}</strong>
+                <strong className="text-xs text-gray-200">{data.description}</strong>
             </div>
             <span className="text-sm text-gray-100 font-semibold">
                 <small className="font-normal text-gray-200">R$</small>
